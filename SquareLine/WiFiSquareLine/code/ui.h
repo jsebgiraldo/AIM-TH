@@ -36,6 +36,27 @@ extern lv_obj_t * ui_ImgPanelConnecting;
 extern lv_obj_t * ui_Image2;
 extern lv_obj_t * ui_BtnHome;
 extern lv_obj_t * ui_ImageBtnHome;
+extern lv_obj_t * ui_MainMenu;
+extern lv_obj_t * ui_LabelTitle1;
+extern lv_obj_t * ui_ButtonNetMenu;
+extern lv_obj_t * ui_LabelBtnScan1;
+extern lv_obj_t * ui_ButtonSharedFolderMenu;
+extern lv_obj_t * ui_LabelBtnScan2;
+extern lv_obj_t * ui_PanelStatus1;
+extern lv_obj_t * ui_LabelPanelStatus1;
+extern lv_obj_t * ui_SharedFolderMenu;
+extern lv_obj_t * ui_ShareFolderLabelTitle;
+extern lv_obj_t * ui_PanelStatus2;
+extern lv_obj_t * ui_LabelPanelStatus2;
+extern lv_obj_t * ui_ImageFolder;
+extern lv_obj_t * ui_PanelSharedFolder;
+extern lv_obj_t * ui_LabelSharedFolder;
+extern lv_obj_t * ui_LabelNetwork;
+extern lv_obj_t * ui_ButtonSharedFolderLs;
+extern lv_obj_t * ui_SharedFolderBtnLabel1;
+extern lv_obj_t * ui_LabelNetworkInfo;
+extern lv_obj_t * ui_BtnHome1;
+extern lv_obj_t * ui_ImageBtnHome1;
 extern lv_obj_t * ui____initial_actions0;
 
 
@@ -43,6 +64,7 @@ LV_IMG_DECLARE(ui_img_search_wifi_png);    // assets\search_wifi.png
 LV_IMG_DECLARE(ui_img_1656806725);    // assets\no-wifi.png
 LV_IMG_DECLARE(ui_img_wifi_1_png);    // assets\wifi_1.png
 LV_IMG_DECLARE(ui_img_home3_png);    // assets\home3.png
+LV_IMG_DECLARE(ui_img_network_png);    // assets\network.png
 LV_IMG_DECLARE(ui_img_home2_png);    // assets\home2.png
 
 

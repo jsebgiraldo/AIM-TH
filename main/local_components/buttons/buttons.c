@@ -16,10 +16,10 @@
  * GPIO 39
  */
 
-#define BUTTON4_GPIO    (39) // reset/pause 
-#define BUTTON3_GPIO    (36) // fill
-#define BUTTON2_GPIO    (35) // wash
-#define BUTTON1_GPIO    (34) // config 
+#define BUTTON4_GPIO    (39) 
+#define BUTTON3_GPIO    (36) 
+#define BUTTON2_GPIO    (35) 
+#define BUTTON1_GPIO    (34) 
 
 
 #define DEBOUNCE_TIME_MS    100
