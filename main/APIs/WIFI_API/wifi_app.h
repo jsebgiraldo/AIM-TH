@@ -9,6 +9,7 @@
 #define MAIN_WIFI_APP_H_
 
 #include "esp_netif.h"
+#include "esp_wifi.h"
 
 // WiFi application task
 #define WIFI_APP_TASK_STACK_SIZE			4096
@@ -76,10 +77,11 @@ void wifi_app_start(void);
  */
 wifi_config_t* wifi_app_get_wifi_config(void);
 
-
 void wifi_app_connect_sta(void);
 
 void wifi_app_disconnect_sta(void);
+
+void wifi_app_scan_networks(void);
 
 
 

@@ -14,11 +14,13 @@
 #include "lvgl.h"
 
 // Network interface
-#include "http_server.h"
 #include "wifi_app.h"
+#include "app_smb.h"
 // Storage interface
 #include "app_nvs.h"
 #include "app_spiffs.h"
+
+
 
 static const char *TAG = "[MAIN]";
 
@@ -58,9 +60,11 @@ void init_wifi_server(void)
 
 void app_main(void)
 {
+    init_wifi_server();
+    app_smb_init();
+
     ui_init();
     button_init();
-    init_wifi_server();
     print_startup_message();
     event_router_init();
     aim_device_init();

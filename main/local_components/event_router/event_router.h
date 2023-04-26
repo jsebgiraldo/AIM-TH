@@ -41,8 +41,11 @@
     EVT_UI_SHARED_FOLDER_SELECTED, \
     EVT_UI_HOME_SELECTED, \
     EVT_UI_LS_BTN_CLICKED, \
+    EVT_UI_LS_CONTENT, \
     EVT_UI_SCAN_BTN_CLICKED, \
     EVT_UI_CONNECT_BTN_CLICKED, \
+    EVT_UI_WIFI_CONN_SUCCEED, \
+    EVT_UI_WIFI_CONN_FAIL, \
     EVT_UI_SET_STATUS_MSG, \
     EVT_UI_FILL_NETWORKS
   
@@ -55,8 +58,11 @@
     "EVT_UI_SHARED_FOLDER_SELECTED", \
     "EVT_UI_HOME_SELECTED", \
     "EVT_UI_LS_BTN_CLICKED", \
+    "EVT_UI_LS_CONTENT", \
     "EVT_UI_SCAN_BTN_CLICKED", \
     "EVT_UI_CONNECT_BTN_CLICKED", \
+    "EVT_UI_WIFI_CONN_SUCCEED", \
+    "EVT_UI_WIFI_CONN_FAIL", \
     "EVT_UI_SET_STATUS_MSG", \
     "EVT_UI_FILL_NETWORKS"    
 
@@ -118,7 +124,7 @@ typedef struct
         coin_payload_t coin;
         uint32_t net_list_msg[EVENT_MAX_PAYLOAD_LEN];
         uint32_t status_msg[EVENT_MAX_PAYLOAD_LEN];
-        uint32_t buffer[EVENT_MAX_PAYLOAD_LEN];
+        uint8_t buffer[EVENT_MAX_PAYLOAD_LEN];
     };
 }event_payload_t;
 

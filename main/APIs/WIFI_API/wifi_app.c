@@ -17,11 +17,6 @@
 
 #include "wifi_app.h"
 
-#define HTTP_SERVER_ENABLE
-#ifdef HTTP_SERVER_ENABLE
-#include "http_server.h"
-#endif
-
 #define NVS_ENABLE
 #ifdef NVS_ENABLE
 #include "app_nvs.h"
@@ -60,83 +55,6 @@ static QueueHandle_t wifi_app_queue_handle;
 esp_netif_t* esp_netif_sta = NULL;
 esp_netif_t* esp_netif_ap  = NULL;
 
-static char *print_disconnection_error(wifi_err_reason_t reason)
-{
-    switch (reason)
-    {
-    case WIFI_REASON_UNSPECIFIED:
-        return "WIFI_REASON_UNSPECIFIED";
-    case WIFI_REASON_AUTH_EXPIRE:
-        return "WIFI_REASON_AUTH_EXPIRE";
-    case WIFI_REASON_AUTH_LEAVE:
-        return "WIFI_REASON_AUTH_LEAVE";
-    case WIFI_REASON_ASSOC_EXPIRE:
-        return "WIFI_REASON_ASSOC_EXPIRE";
-    case WIFI_REASON_ASSOC_TOOMANY:
-        return "WIFI_REASON_ASSOC_TOOMANY";
-    case WIFI_REASON_NOT_AUTHED:
-        return "WIFI_REASON_NOT_AUTHED";
-    case WIFI_REASON_NOT_ASSOCED:
-        return "WIFI_REASON_NOT_ASSOCED";
-    case WIFI_REASON_ASSOC_LEAVE:
-        return "WIFI_REASON_ASSOC_LEAVE";
-    case WIFI_REASON_ASSOC_NOT_AUTHED:
-        return "WIFI_REASON_ASSOC_NOT_AUTHED";
-    case WIFI_REASON_DISASSOC_PWRCAP_BAD:
-        return "WIFI_REASON_DISASSOC_PWRCAP_BAD";
-    case WIFI_REASON_DISASSOC_SUPCHAN_BAD:
-        return "WIFI_REASON_DISASSOC_SUPCHAN_BAD";
-    case WIFI_REASON_IE_INVALID:
-        return "WIFI_REASON_IE_INVALID";
-    case WIFI_REASON_MIC_FAILURE:
-        return "WIFI_REASON_MIC_FAILURE";
-    case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
-        return "WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT";
-    case WIFI_REASON_GROUP_KEY_UPDATE_TIMEOUT:
-        return "WIFI_REASON_GROUP_KEY_UPDATE_TIMEOUT";
-    case WIFI_REASON_IE_IN_4WAY_DIFFERS:
-        return "WIFI_REASON_IE_IN_4WAY_DIFFERS";
-    case WIFI_REASON_GROUP_CIPHER_INVALID:
-        return "WIFI_REASON_GROUP_CIPHER_INVALID";
-    case WIFI_REASON_PAIRWISE_CIPHER_INVALID:
-        return "WIFI_REASON_PAIRWISE_CIPHER_INVALID";
-    case WIFI_REASON_AKMP_INVALID:
-        return "WIFI_REASON_AKMP_INVALID";
-    case WIFI_REASON_UNSUPP_RSN_IE_VERSION:
-        return "WIFI_REASON_UNSUPP_RSN_IE_VERSION";
-    case WIFI_REASON_INVALID_RSN_IE_CAP:
-        return "WIFI_REASON_INVALID_RSN_IE_CAP";
-    case WIFI_REASON_802_1X_AUTH_FAILED:
-        return "WIFI_REASON_802_1X_AUTH_FAILED";
-    case WIFI_REASON_CIPHER_SUITE_REJECTED:
-        return "WIFI_REASON_CIPHER_SUITE_REJECTED";
-    case WIFI_REASON_INVALID_PMKID:
-        return "WIFI_REASON_INVALID_PMKID";
-    case WIFI_REASON_BEACON_TIMEOUT:
-        return "WIFI_REASON_BEACON_TIMEOUT";
-    case WIFI_REASON_NO_AP_FOUND:
-        return "WIFI_REASON_NO_AP_FOUND";
-    case WIFI_REASON_AUTH_FAIL:
-        return "WIFI_REASON_AUTH_FAIL";
-    case WIFI_REASON_ASSOC_FAIL:
-        return "WIFI_REASON_ASSOC_FAIL";
-    case WIFI_REASON_HANDSHAKE_TIMEOUT:
-        return "WIFI_REASON_HANDSHAKE_TIMEOUT";
-    case WIFI_REASON_CONNECTION_FAIL:
-        return "WIFI_REASON_CONNECTION_FAIL";
-    case WIFI_REASON_AP_TSF_RESET:
-        return "WIFI_REASON_AP_TSF_RESET";
-    case WIFI_REASON_ROAMING:
-        return "WIFI_REASON_ROAMING";
-	case WIFI_REASON_TRANSMISSION_LINK_ESTABLISH_FAILED:
-        return "TRANSMISSION_LINK_ESTABLISH_FAILED";
-	default:
-    	return "";
-	}
-	return "";
-}
-
-
 /**
  * WiFi application event handler
  * @param arg data, aside from event data, that is passed to the handler when it is called
@@ -146,6 +64,8 @@ static char *print_disconnection_error(wifi_err_reason_t reason)
  */
 static void wifi_app_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
+	event_t event;
+
 	if (event_base == WIFI_EVENT)
 	{
 		switch (event_id)
@@ -161,18 +81,12 @@ static void wifi_app_event_handler(void *arg, esp_event_base_t event_base, int32
 			case WIFI_EVENT_AP_STACONNECTED:
 			{
 				WIFI_DEBUG("WIFI_EVENT_AP_STACONNECTED");
-				#ifdef HTTP_SERVER_ENABLE
-				http_server_start();
-				#endif
 
 				/********************************/
-				event_t event = 
-				{
-    				.src  = TASK_WIFI,
-    				.dest = TASK_AIM,
-    				.id   = EVT_WIFI_STA_CONNECTED,
-     				.payload.len = 0
-				};
+				event.src  = TASK_WIFI;
+				event.dest = TASK_AIM;
+				event.id   = EVT_WIFI_STA_CONNECTED;
+				event.payload.len = 0;
 				event_router_write(&event);
 				/********************************/
 
@@ -181,18 +95,13 @@ static void wifi_app_event_handler(void *arg, esp_event_base_t event_base, int32
 			case WIFI_EVENT_AP_STADISCONNECTED:
 			{
 				WIFI_DEBUG("WIFI_EVENT_AP_STADISCONNECTED");
-				#ifdef HTTP_SERVER_ENABLE
-				// http_server_stop();
-				#endif
 
 				/********************************/
-				event_t event = 
-				{
-    				.src  = TASK_WIFI,
-    				.dest = TASK_AIM,
-    				.id   = EVT_WIFI_STA_DISCONNECTED,
-     				.payload.len = 0
-				};
+			
+				event.src  = TASK_WIFI;
+				event.dest = TASK_AIM;
+				event.id   = EVT_WIFI_STA_DISCONNECTED;
+				event.payload.len = 0;
 				event_router_write(&event);
 				/********************************/
 
@@ -204,15 +113,28 @@ static void wifi_app_event_handler(void *arg, esp_event_base_t event_base, int32
 
 			case WIFI_EVENT_STA_CONNECTED:
 				WIFI_DEBUG("WIFI_EVENT_STA_CONNECTED");
+
+				/********************************/
+
+				event.src  = TASK_WIFI;
+				event.dest = TASK_AIM;
+				event.id   = EVT_UI_WIFI_CONN_SUCCEED;
+				event.payload.len = 0;
+				event_router_write(&event);
+				/********************************/
 				break;
 
 			case WIFI_EVENT_STA_DISCONNECTED:
 				WIFI_DEBUG("WIFI_EVENT_STA_DISCONNECTED");
-
-				wifi_event_sta_disconnected_t *wifi_event_sta_disconnected = (wifi_event_sta_disconnected_t*)malloc(sizeof(wifi_event_sta_disconnected_t));
-				*wifi_event_sta_disconnected = *((wifi_event_sta_disconnected_t*)event_data);
-				printf("WIFI_EVENT_STA_DISCONNECTED, reason code %s\n", print_disconnection_error(wifi_event_sta_disconnected->reason));
 				wifi_app_send_message(WIFI_APP_MSG_STA_DISCONNECTED);
+
+				/********************************/
+		
+				event.src  = TASK_WIFI;
+				event.dest = TASK_AIM;
+				event.id   = EVT_UI_WIFI_CONN_FAIL;
+				event.payload.len = 0;
+				event_router_write(&event);
 
 				break;
 		}
@@ -346,8 +268,20 @@ void wifi_app_disconnect_sta(void){
 }
 
 	
-
-	//nfc_available_event_set(SAS_NFC_CHECK_IN, "AD467906");	
+void wifi_app_scan_networks(void)
+{
+   	esp_wifi_scan_start(NULL, true);
+    uint16_t ap_count = 0;
+    esp_wifi_scan_get_ap_num(&ap_count);
+    printf("Number of WiFi networks found: %d\n", ap_count);
+    wifi_ap_record_t *ap_list = (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * ap_count);
+    esp_wifi_scan_get_ap_records(&ap_count, ap_list);
+    for (int i = 0; i < ap_count; i++) {
+        printf("SSID: %s, RSSI: %d\n", ap_list[i].ssid, ap_list[i].rssi);
+    }
+    free(ap_list);
+}
+	
 
 
 /**
@@ -370,9 +304,6 @@ static void wifi_app_task(void *pvParameters)
 
 	// Start WiFi
 	ESP_ERROR_CHECK(esp_wifi_start());
-
-	// Send first event message
-	wifi_app_send_message(WIFI_APP_MSG_LOAD_SAVED_CREDENTIALS);
 
 	for (;;)
 	{
@@ -397,15 +328,6 @@ static void wifi_app_task(void *pvParameters)
 
 					break;
 				#endif
-				case WIFI_APP_MSG_START_HTTP_SERVER:
-					WIFI_DEBUG("WIFI_APP_MSG_START_HTTP_SERVER");
-
-					#ifdef HTTP_SERVER_ENABLE
-					// Let the HTTP server know about the connection attempt
-					http_server_monitor_send_message(HTTP_MSG_WIFI_CONNECT_INIT);
-					#endif
-
-					break;
 
 				case WIFI_APP_MSG_CONNECTING_FROM_HTTP_SERVER:
 					WIFI_DEBUG("WIFI_APP_MSG_CONNECTING_FROM_HTTP_SERVER");
@@ -417,16 +339,10 @@ static void wifi_app_task(void *pvParameters)
 
 					// Set current number of retries to zero
 					g_retry_number = 0;
-
-					// Next, start the web server
-					wifi_app_send_message(WIFI_APP_MSG_START_HTTP_SERVER);
-
 					break;
 
 				case WIFI_APP_MSG_STA_CONNECTED_GOT_IP:
 					WIFI_DEBUG("WIFI_APP_MSG_STA_CONNECTED_GOT_IP");
-					http_server_start();
-
 					xEventGroupSetBits(wifi_app_event_group, WIFI_APP_STA_CONNECTED_GOT_IP_BIT);
 
 					eventBits = xEventGroupGetBits(wifi_app_event_group);
@@ -446,10 +362,6 @@ static void wifi_app_task(void *pvParameters)
 						
 						xEventGroupClearBits(wifi_app_event_group, WIFI_APP_CONNECTING_FROM_HTTP_SERVER_BIT);
 					}
-					
-					#ifdef HTTP_SERVER_ENABLE
-					http_server_set_connect_status(HTTP_WIFI_STATUS_CONNECT_SUCCESS);
-					#endif
 					break;
 
 				case WIFI_APP_MSG_USER_REQUESTED_STA_DISCONNECT:
@@ -480,18 +392,11 @@ static void wifi_app_task(void *pvParameters)
 					{
 						WIFI_DEBUG("WIFI_APP_MSG_STA_DISCONNECTED: ATTEMPT FROM THE HTTP SERVER");
 						xEventGroupClearBits(wifi_app_event_group, WIFI_APP_CONNECTING_FROM_HTTP_SERVER_BIT);
-						#ifdef HTTP_SERVER_ENABLE
-						http_server_monitor_send_message(HTTP_MSG_WIFI_CONNECT_FAIL);
-						#endif
 					}
 					else if (eventBits & WIFI_APP_USER_REQUESTED_STA_DISCONNECT_BIT)
 					{
 						WIFI_DEBUG("WIFI_APP_MSG_STA_DISCONNECTED: USER REQUESTED DISCONNECTION");
 						xEventGroupClearBits(wifi_app_event_group, WIFI_APP_USER_REQUESTED_STA_DISCONNECT_BIT);
-						//http_server_monitor_send_message(HTTP_MSG_WIFI_USER_DISCONNECT);
-						#ifdef HTTP_SERVER_ENABLE
-						http_server_set_connect_status(HTTP_WIFI_STATUS_DISCONNECTED);
-						#endif
 					}
 					else
 					{
@@ -537,8 +442,6 @@ wifi_config_t* wifi_app_get_wifi_config(void)
 {
 	return wifi_config;
 }
-
-
 
 void wifi_app_start(void)
 {

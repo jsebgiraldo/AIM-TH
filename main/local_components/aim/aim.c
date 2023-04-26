@@ -13,6 +13,8 @@
 
 #include "ui_wifi_screen.h"
 
+#include "wifi_app.h"
+#include "app_smb.h"
 
 #include "event_router.h"
 
@@ -160,11 +162,28 @@ static esp_err_t on_state_wifi_config(aim_device_fsm_t *fsm)
 
         ui_set_status_msg("Scanning Networks...");
         ui_show_scanning_panel();
-        vTaskDelay(2500/portTICK_PERIOD_MS);
+        
+        esp_wifi_scan_start(NULL, true);
+        uint16_t ap_count = 0;
+        esp_wifi_scan_get_ap_num(&ap_count);
+        printf("Number of WiFi networks found: %d\n", ap_count);
+        wifi_ap_record_t *ap_list = (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * ap_count);
+        esp_wifi_scan_get_ap_records(&ap_count, ap_list);
+
+        char ap_list_view[ap_count *MAX_SSID_LEN];
+        memset(ap_list_view,0,sizeof(ap_list_view));
+
+        for (int i = 0; i < ap_count; i++) {
+            strcat(ap_list_view,(char *)ap_list[i].ssid);
+            strcat(ap_list_view,"\n");
+            printf("SSID: %s, RSSI: %d\n", ap_list[i].ssid, ap_list[i].rssi);
+        }
+
+        free(ap_list);
 
         ui_set_status_msg("Scanning Complete!");
         ui_show_networks_panel();
-        ui_set_scanned_networks("Network 1\nNetwork 2\nNetwork 3");
+        ui_set_scanned_networks(ap_list_view);
     }
     break;
 
@@ -174,25 +193,36 @@ static esp_err_t on_state_wifi_config(aim_device_fsm_t *fsm)
 
         ui_set_status_msg("Attempt to connect ...");
 
-        WATER_DIS_LOGI("Network Selected [%s]", ui_get_network_ssid());
-        WATER_DIS_LOGI("Password [%s]", ui_get_network_password());
+        char *ssid_str = ui_get_network_ssid();
+        char *pass_str = ui_get_network_password();
 
+        WATER_DIS_LOGI("Network Selected [%s]", ssid_str);
+        WATER_DIS_LOGI("Password [%s]", pass_str);
+
+        wifi_config_t* wifi_config = wifi_app_get_wifi_config();
+
+        memset(wifi_config,0x00,sizeof(wifi_config_t));
+        memcpy(wifi_config->sta.ssid, ssid_str, strlen(ssid_str));
+	    memcpy(wifi_config->sta.password, pass_str, strlen(pass_str));
+        wifi_app_send_message(WIFI_APP_MSG_CONNECTING_FROM_HTTP_SERVER);
 
         ui_show_connecting_panel_in_progress();
-        vTaskDelay(2500/portTICK_PERIOD_MS);
+    } break;
 
+    case EVT_UI_WIFI_CONN_SUCCEED:
+    {
         ui_set_status_msg("Connection succeed ");
         ui_show_connecting_panel_succeed();
-        vTaskDelay(2500/portTICK_PERIOD_MS);
+    }break;
 
+    case EVT_UI_WIFI_CONN_FAIL:
+    {
         ui_set_status_msg("Connection Failed ");
         ui_show_connecting_panel_fail();
         vTaskDelay(2500/portTICK_PERIOD_MS);
 
         ui_show_password_panel();
-        vTaskDelay(100/portTICK_PERIOD_MS);
-
-    } break;
+    }break;
 
     default:
         WATER_DIS_LOGW("event [%s] not handled in state [%s]",
@@ -242,9 +272,23 @@ static esp_err_t on_state_shared_folder(aim_device_fsm_t *fsm)
     case EVT_UI_LS_BTN_CLICKED: {
 
         ui_set_status_msg("Share Folder Found!!");
-        ui_share_folder_set_sbm_name("smb://Bayron@192.168.11.2/myNetwork");
-        ui_share_folder_set_content("Here goes the content");
-    } break;    
+
+        app_smb_set_user("User31");
+        app_smb_set_password("123push");
+        char *path_str = "Share_network";
+
+        ui_share_folder_set_content((char *)app_smb_ls(path_str));
+
+        char LabelNetworkInfo_str[30];
+        tcpip_adapter_ip_info_t ip_info;
+        tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ip_info);
+
+        smb_config_t *smb_config = app_smb_get_config();
+
+        sprintf(LabelNetworkInfo_str,"smb://%s@%s/%s",smb_config->user,ip4addr_ntoa(&ip_info.gw),path_str);
+        ui_share_folder_set_sbm_name(LabelNetworkInfo_str);
+
+    } break;
 
     default:
         WATER_DIS_LOGW("event [%s] not handled in state [%s]",
@@ -326,7 +370,7 @@ void aim_device_task(void* arg)
 void aim_device_init(void)
 {
     mediator_queue = xQueueCreate(aim_device_QUEUE_ITEMS , EVENT_ITEM_SIZE_BYTES);
-    xTaskCreate(aim_device_task, "aim_task", 2048*2, NULL, 10, NULL);
+    xTaskCreate(aim_device_task, "aim_task", 1024*6, NULL, 10, NULL);
 
     WATER_DIS_LOGI("Water Dispenser initialized");
 }

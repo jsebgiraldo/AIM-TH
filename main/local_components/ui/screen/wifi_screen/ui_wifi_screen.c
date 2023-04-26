@@ -11,6 +11,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include "app_smb.h"
+#include "wifi_app.h"
+
 ///////////////////// VARIABLES ////////////////////
 lv_obj_t * ui_WiFiScreen;
 lv_obj_t * ui_ButtonScan;
@@ -659,13 +662,21 @@ void ui_SharedFolderMenu_screen_init(void)
     lv_obj_set_style_text_color(ui_SharedFolderBtnLabel1, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_SharedFolderBtnLabel1, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    char LabelNetworkInfo_str[20];
+    tcpip_adapter_ip_info_t ip_info;
+    tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ip_info);
+
+    smb_config_t *smb_config = app_smb_get_config();
+
+    sprintf(LabelNetworkInfo_str,"smb://%s@%s",smb_config->user,ip4addr_ntoa(&ip_info.gw));
+
     ui_LabelNetworkInfo = lv_label_create(ui_SharedFolderMenu);
     lv_obj_set_width(ui_LabelNetworkInfo, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_LabelNetworkInfo, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_LabelNetworkInfo, 44);
     lv_obj_set_y(ui_LabelNetworkInfo, 101);
     lv_obj_set_align(ui_LabelNetworkInfo, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_LabelNetworkInfo, "smb://User49@192.168.11.2/ShareNetwork");
+    lv_label_set_text(ui_LabelNetworkInfo, LabelNetworkInfo_str);
 
     ui_BtnHome1 = lv_btn_create(ui_SharedFolderMenu);
     lv_obj_set_width(ui_BtnHome1, 50);

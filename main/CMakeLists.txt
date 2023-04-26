@@ -1,10 +1,10 @@
 
 file(GLOB srcs
         "*.c"
-        "APIs/HTTP_SERVER/*.c"
         "APIs/WIFI_API/*.c"
         "APIs/SPIFFS/*c"
         "APIs/NVS/*.c"
+        "APIs/SMB/*.c"
         # "local_components/lvgl_app/*.c"
         "local_components/buttons/*.c"
         "local_components/light/*.c"
@@ -13,15 +13,15 @@ file(GLOB srcs
         "local_components/ui/*.c"
         "local_components/ui/img/*.c"
         "local_components/ui/screen/wifi_screen/*.c"
-        "local_components/ui/screen/main_screen/*.c"
+        # "local_components/ui/screen/main_screen/*.c"
         "local_components/event_router/*.c"
         )
         
 set(dirs
-        "APIs/HTTP_SERVER"
         "APIs/WIFI_API"
         "APIs/SPIFFS"
         "APIs/NVS"
+        "APIs/SMB"
         # "local_components/lvgl_app"
         "local_components/buttons"
         "local_components/light"
@@ -29,7 +29,7 @@ set(dirs
         "local_components/aim"
         "local_components/ui"
         "local_components/ui/screen/wifi_screen"
-        "local_components/ui/screen/main_screen"
+        # "local_components/ui/screen/main_screen"
         "local_components/event_router"
         )
 
